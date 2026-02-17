@@ -53,7 +53,8 @@ export async function POST(req: Request) {
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: text },
       ],
-      temperature: 0.7,
+      temperature: 0.6,
+      max_tokens: 120,
     });
 
     const insight = completion.choices[0].message.content;
