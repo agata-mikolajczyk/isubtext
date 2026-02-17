@@ -1,1 +1,2 @@
 # iSubtext Project
+rebuild trigger
