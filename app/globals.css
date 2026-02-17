@@ -12,3 +12,20 @@ body {
   color: rgb(var(--foreground-rgb));
   background: white;
 }
+
+/* -------------------------------- */
+/* iSubtext — Insight Breath Motion */
+/* -------------------------------- */
+
+@keyframes breath {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.92;
+  }
+}
+
+.animate-breath {
+  animation: breath 4s ease-in-out infinite;
+}
