@@ -106,24 +106,25 @@ export default function Home() {
   // ---------------------------
   return (
     <main className="min-h-screen bg-gradient-to-b from-neutral-950 via-neutral-950 to-black text-neutral-100">
-      <div className="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-6">
+      <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center px-6">
         <div
           className="
-            w-full max-w-xl space-y-8
+            w-full max-w-lg
+            space-y-10
             rounded-3xl
             border border-white/10
-            bg-white/[0.05]
+            bg-white/[0.06]
             backdrop-blur-xl
-            shadow-[0_0_60px_rgba(0,0,0,0.6)]
-            p-8
+            shadow-[0_20px_80px_rgba(0,0,0,0.65)]
+            p-10
           "
         >
           {/* TITLE */}
-          <div className="text-center space-y-2">
+          <div className="text-center space-y-3">
             <h1 className="text-3xl font-semibold tracking-tight">
               iSubtext
             </h1>
-            <p className="text-neutral-400 text-sm">
+            <p className="text-neutral-400 text-sm max-w-sm mx-auto">
               Observe what lives between the lines.
             </p>
           </div>
@@ -136,14 +137,32 @@ export default function Home() {
               setHasTyped(true);
             }}
             placeholder="Paste a conversation message..."
-            className="w-full h-40 resize-none rounded-2xl bg-neutral-900 border border-neutral-800 p-4 outline-none focus:border-neutral-600 transition"
+            className="
+              w-full h-40 resize-none
+              rounded-xl
+              bg-neutral-900/80
+              border border-neutral-800
+              px-4 py-3
+              text-sm leading-relaxed
+              focus:border-neutral-600
+              transition
+            "
           />
 
           {/* BUTTON */}
           <button
             onClick={analyzeConversation}
             disabled={loading}
-            className="w-full rounded-2xl bg-white text-black py-3 font-medium hover:opacity-90 transition disabled:opacity-40"
+            className="
+              w-full
+              rounded-xl
+              bg-white text-black
+              py-3
+              text-sm font-medium
+              hover:opacity-90
+              transition
+              disabled:opacity-40
+            "
           >
             {loading ? "Observing..." : "Analyze"}
           </button>
@@ -152,13 +171,16 @@ export default function Home() {
           {(visibleText || loading) && (
             <div
               className={`
-                rounded-2xl border border-neutral-800 bg-neutral-900 p-6
-                min-h-[120px] max-w-prose leading-relaxed text-neutral-200
-                transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]
+                rounded-xl border border-neutral-800
+                bg-neutral-900/80
+                p-5
+                min-h-[120px]
+                text-sm leading-relaxed text-neutral-200
+                transition-all duration-700
                 ${
                   showInsight
-                    ? "opacity-100 scale-100 translate-y-0"
-                    : "opacity-0 scale-[0.98] translate-y-2"
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-2"
                 }
                 ${breathing ? "animate-breath" : ""}
               `}
