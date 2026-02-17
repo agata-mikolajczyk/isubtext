@@ -136,8 +136,20 @@ export default function Home() {
   // UI
   // ---------------------------
   return (
-    <main className="min-h-screen flex items-center justify-center bg-neutral-950 text-neutral-100 px-6">
-      <div className="w-full max-w-xl space-y-8">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-neutral-950 via-neutral-950 to-black text-neutral-100 px-6">
+
+      <div
+        className="
+          w-full max-w-xl space-y-8
+          rounded-3xl
+          border border-white/10
+          bg-white/[0.03]
+          backdrop-blur-xl
+          shadow-[0_0_60px_rgba(0,0,0,0.6)]
+          p-8
+        "
+      >
+
         {/* TITLE */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight">
