@@ -2,8 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -19,3 +18,4 @@ jobs:
           script: |
             cd /var/www/isubtext
             ./deploy.sh
+

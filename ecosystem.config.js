@@ -4,16 +4,13 @@ module.exports = {
       name: "isubtext",
       script: "npm",
       args: "start",
-      watch: true,
-      ignore_watch: [
-        "node_modules",
-        ".next",
-        ".git",
-        "logs"
-      ],
+      cwd: "/var/www/isubtext",
+      instances: 1,
+      exec_mode: "fork",
       env: {
-        NODE_ENV: "production"
-      }
-    }
-  ]
+        NODE_ENV: "production",
+        PORT: 3000,
+      },
+    },
+  ],
 };
