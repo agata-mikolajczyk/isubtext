@@ -1,19 +1,20 @@
 #!/bin/bash
 
-echo "=== DEPLOY START ==="
+echo "🚀 Starting deploy..."
 
 cd /var/www/isubtext || exit
 
-echo "Pulling latest code..."
+echo "📥 Pulling changes..."
 git pull origin main
 
-echo "Installing dependencies..."
-npm install
+echo "📦 Installing deps..."
+npm install --omit=dev
 
-echo "Building app..."
+echo "🏗 Building app..."
 npm run build
 
-echo "Restarting app..."
-pm2 restart isubtext
+echo "♻️ Reloading app (zero downtime)..."
+pm2 reload ecosystem.config.js --update-env
 
-echo "=== DEPLOY DONE ==="
+echo "✅ Deploy finished!"
+
