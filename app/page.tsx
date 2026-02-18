@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const DEMO_INSIGHT =
   "One person keeps explaining, while the other keeps waiting to feel understood. The conversation moves forward, but emotional alignment stays slightly behind.";
@@ -17,6 +18,10 @@ export default function Home() {
   const [breathing, setBreathing] = useState(false);
   const [hasTyped, setHasTyped] = useState(false);
 
+  // ✅ DODAJ TO TUTAJ
+  const pathname = usePathname();
+  const isPolish = pathname.startsWith("/pl");
+
   useEffect(() => setMounted(true), []);
 
   const analyzeConversation = async () => {
@@ -24,7 +29,7 @@ export default function Home() {
     
     setHasTyped(true); // ⭐ KLUCZOWA LINIA
     setLoading(true);
-    setShowInsight(false);
+    setShowInsight(true);   // pokaż box od razu
     setBreathing(false);
 
     setFullText("");
@@ -128,9 +133,18 @@ export default function Home() {
                 ${breathing ? "animate-breath" : ""}
               `}
             >
-              {visibleText}
+              {loading && !visibleText
+                ? "Reading between the lines..."
+                : visibleText}
+
               {visibleText !== fullText && (
                 <span className="animate-pulse ml-1">▍</span>
+              )}
+
+              {visibleText === fullText && (
+                <p className="mt-6 text-xs opacity-40 tracking-wide">
+                  iSubtext.com
+                </p>
               )}
             </div>
           )}
