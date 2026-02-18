@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const text: string = body.text;
+    const lang: string = body.lang || "en";
 
     // Basic validation
     if (!text || text.trim().length < 10) {
@@ -30,6 +31,11 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    const languageInstruction =
+      lang === "pl"
+        ? "Write the insight in natural Polish. Use calm, reflective everyday language. Avoid formal or academic tone."
+        : "Write the insight in natural English.";
 
     /**
      * OpenAI request
@@ -41,7 +47,8 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: ISUBTEXT_SYSTEM_PROMPT,
+          content: `${ISUBTEXT_SYSTEM_PROMPT}
+          ${languageInstruction}`,
         },
         {
           role: "user",

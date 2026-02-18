@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
-const DEMO_INSIGHT =
+const DEMO_INSIGHT_EN =
   "One person keeps explaining, while the other keeps waiting to feel understood. The conversation moves forward, but emotional alignment stays slightly behind.";
+
+const DEMO_INSIGHT_PL =
+  "Jedna osoba wciąż tłumaczy, podczas gdy druga czeka, aż naprawdę poczuje się zrozumiana. Rozmowa toczy się dalej, ale emocjonalne porozumienie pozostaje krok w tyle.";
 
 export default function Home() {
   const [text, setText] = useState("");
@@ -19,12 +22,14 @@ export default function Home() {
   const [hasTyped, setHasTyped] = useState(false);
 
   // ✅ DODAJ TO TUTAJ
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   const isPolish = pathname.startsWith("/pl");
+
 
   useEffect(() => setMounted(true), []);
 
-  const analyzeConversation = async () => {
+    const analyzeConversation = async () => {
+      console.log("CLICK", text);
     if (!text.trim()) return;
     
     setHasTyped(true); // ⭐ KLUCZOWA LINIA
@@ -39,8 +44,18 @@ export default function Home() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({
+          text,
+          lang: isPolish ? "pl" : "en",
+        }),
       });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("API ERROR:", errorText);
+        setLoading(false);
+        return;
+      }
 
       const data = await res.json();
 
@@ -48,21 +63,24 @@ export default function Home() {
 
       setFullText(data.insight);
       requestAnimationFrame(() => setShowInsight(true));
+    } catch (err) {
+      console.error("FETCH FAILED:", err);
     } finally {
       setLoading(false);
     }
+    
   };
 
   useEffect(() => {
     if (!mounted || hasTyped) return;
 
     const t = setTimeout(() => {
-      setFullText(DEMO_INSIGHT);
+      setFullText(isPolish ? DEMO_INSIGHT_PL : DEMO_INSIGHT_EN);
       requestAnimationFrame(() => setShowInsight(true));
     }, 1200);
 
     return () => clearTimeout(t);
-  }, [mounted, hasTyped]);
+  }, [mounted, hasTyped, isPolish]);
 
   useEffect(() => {
     if (!fullText) return;
@@ -98,7 +116,9 @@ export default function Home() {
               iSubtext
             </h1>
             <p className="text-neutral-400 text-sm max-w-xs mx-auto">
-              Observe what lives between the lines.
+              {isPolish
+                ? "Zobacz, co kryje się między słowami."
+                : "Observe what lives between the lines."}
             </p>
           </div>
 
@@ -106,10 +126,14 @@ export default function Home() {
           <textarea
             value={text}
             onChange={(e) => {
-              setText(e.target.value);
+              setText(e.currentTarget.value);
               setHasTyped(true);
             }}
-            placeholder="Paste a conversation message..."
+            placeholder={
+              isPolish
+                ? "Wklej fragment rozmowy..."
+                : "Paste a conversation message..."
+            }
             className="w-full h-40 resize-none rounded-xl bg-neutral-900/80 border border-neutral-800 px-4 py-3 text-sm leading-relaxed transition focus:border-neutral-600"
           />
 
@@ -119,7 +143,9 @@ export default function Home() {
             disabled={loading}
             className="w-full rounded-xl bg-white text-black py-3 text-sm font-medium hover:opacity-90 transition disabled:opacity-40"
           >
-            {loading ? "Observing..." : "Analyze"}
+            {loading
+              ? (isPolish ? "Obserwuję..." : "Observing...")
+              : (isPolish ? "Analizuj" : "Analyze")}
           </button>
 
           {/* INSIGHT */}
@@ -134,7 +160,9 @@ export default function Home() {
               `}
             >
               {loading && !visibleText
-                ? "Reading between the lines..."
+                ? (isPolish
+                    ? "Czytam między słowami..."
+                    : "Reading between the lines...")
                 : visibleText}
 
               {visibleText !== fullText && (
