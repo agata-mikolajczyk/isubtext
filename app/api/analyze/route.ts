@@ -1,74 +1,81 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { ISUBTEXT_SYSTEM_PROMPT } from "@/lib/isubtextPrompt";
 
-const client = new OpenAI({
+/**
+ * Create OpenAI client
+ * Uses OPENAI_API_KEY from .env.local
+ */
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const SYSTEM_PROMPT = `
-You are iSubtext — an observer of conversational dynamics.
-
-Your task is to notice subtle shifts in interaction, not to judge or advise.
-
-Focus on:
-- emotional temperature
-- reciprocity
-- pacing changes
-- conversational energy
-
-Rules:
-- never give advice
-- never suggest what someone should do
-- avoid psychological labels
-- describe patterns gently and tentatively
-- sound human, calm, and perceptive
-
-Output style:
-- 2–3 sentences maximum
-- concise but perceptive
-- avoid explanations or summaries
-- prefer observation over interpretation
-- subtle, slightly poetic tone
-- no bullet points
-- no emojis
-
-Write like an insightful observer, not an assistant.
-`;
-
-export async function POST(req: Request) {
-  console.log("OPENAI KEY EXISTS:", !!process.env.OPENAI_API_KEY);
+/**
+ * POST /api/analyze
+ *
+ * Body:
+ * {
+ *   text: string
+ * }
+ */
+export async function POST(req: NextRequest) {
   try {
-    const { text } = await req.json();
+    const body = await req.json();
+    const text: string = body.text;
 
-    if (!text) {
+    // Basic validation
+    if (!text || text.trim().length < 10) {
       return NextResponse.json(
-        { error: "Missing text" },
+        { error: "Conversation text too short." },
         { status: 400 }
       );
     }
 
-    const completion = await client.chat.completions.create({
-      model: "gpt-4.1-mini",
+    /**
+     * OpenAI request
+     */
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.9,
+
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: text },
+        {
+          role: "system",
+          content: ISUBTEXT_SYSTEM_PROMPT,
+        },
+        {
+          role: "user",
+          content: text,
+        },
       ],
-      temperature: 0.6,
-      max_tokens: 120,
     });
 
-    const insight = completion.choices[0].message.content;
+    const insight =
+      completion.choices[0]?.message?.content?.trim() ?? "";
 
-    return NextResponse.json({
-      insight,
-    });
+    /**
+     * Safety fallback
+     */
+    if (!insight) {
+      return NextResponse.json(
+        { error: "No insight generated." },
+        { status: 500 }
+      );
+    }
+
+    /**
+     * Optional intentional delay
+     * (keeps slow-AI feeling from project philosophy)
+     */
+    await new Promise((resolve) => setTimeout(resolve, 900));
+
+    return NextResponse.json({ insight });
   } catch (error) {
-    console.error("Analyze error:", error);
+    console.error("Analyze API error:", error);
 
     return NextResponse.json(
-      { error: "Analysis failed" },
+      { error: "Internal server error." },
       { status: 500 }
     );
   }
 }
-

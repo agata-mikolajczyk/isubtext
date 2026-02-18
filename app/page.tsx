@@ -21,8 +21,12 @@ export default function Home() {
 
   const analyzeConversation = async () => {
     if (!text.trim()) return;
-
+    
+    setHasTyped(true); // ⭐ KLUCZOWA LINIA
     setLoading(true);
+    setShowInsight(false);
+    setBreathing(false);
+
     setFullText("");
     setVisibleText("");
 
@@ -80,7 +84,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-neutral-950 text-neutral-100 px-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md mx-auto">
         <div className="space-y-10 rounded-3xl border border-white/10 bg-white/[0.06] backdrop-blur-xl shadow-2xl p-10">
           
           {/* TITLE */}
