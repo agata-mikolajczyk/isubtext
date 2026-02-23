@@ -136,6 +136,11 @@ export default function Home() {
             }
             className="w-full h-40 resize-none rounded-xl bg-neutral-900/80 border border-neutral-800 px-4 py-3 text-sm leading-relaxed transition focus:border-neutral-600"
           />
+          <p className="mt-3 text-xs text-neutral-500 text-center max-w-md mx-auto leading-relaxed">
+            {isPolish
+              ? "Rozmowa jest przetwarzana wyłącznie w celu wygenerowania refleksji i nie jest zapisywana."
+              : "Your conversation is processed only to generate the insight and is never stored."}
+          </p>
 
           {/* BUTTON */}
           <button

@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   description: "Observe what lives between the lines.",
 };
 
+import Footer from "./Footer";
+
 export default function RootLayout({
   children,
 }: {
@@ -18,8 +20,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${geist.className} antialiased`}>
-        {children}
+      <body className="min-h-screen flex flex-col">
+
+        {/* CONTENT */}
+        <main className="flex-1">
+          {children}
+        </main>
+
+        {/* ✅ GDPR FOOTER */}
+        <Footer />
+
       </body>
     </html>
   );

@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { ISUBTEXT_SYSTEM_PROMPT } from "@/lib/isubtextPrompt";
+import { ISUBTEXT_PROMPT } from "@/lib/isubtextPrompt";
+
+const MICRO_LENSES = [
+  "Focus on what remains unspoken but emotionally present.",
+  "Reflect subtle emotional distance rather than explicit meaning.",
+  "Notice hesitation and softness between the lines.",
+  "Capture the feeling that lingers after the conversation ends.",
+  "Sense quiet expectations that were never directly voiced.",
+  "Reflect emotional tension gently, without explanation.",
+  "Focus on what is felt but carefully avoided in words.",
+  "Notice where effort and emotional return feel uneven.",
+  "Reflect the gap between what is expressed and what is actually sustained."
+];
+
+function pickLens() {
+  return MICRO_LENSES[Math.floor(Math.random() * MICRO_LENSES.length)];
+}
 
 /**
  * Create OpenAI client
@@ -24,6 +40,9 @@ export async function POST(req: NextRequest) {
     const text: string = body.text;
     const lang: string = body.lang || "en";
 
+    // ✅ KROK 2 — wybierz micro-variation lens
+    const lens = pickLens();
+
     // Basic validation
     if (!text || text.trim().length < 10) {
       return NextResponse.json(
@@ -39,7 +58,14 @@ export async function POST(req: NextRequest) {
 
     /**
      * OpenAI request
+     *
+     * Privacy design note:
+     * Conversation text is processed transiently in memory
+     * solely to generate the requested insight.
+     * No conversation data is stored, logged, or persisted
+     * by iSubtext after the response is returned.
      */
+    
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.9,
@@ -47,8 +73,12 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `${ISUBTEXT_SYSTEM_PROMPT}
-          ${languageInstruction}`,
+          content: `${ISUBTEXT_PROMPT}
+      ${languageInstruction}`,
+        },
+        {
+          role: "system",
+          content: lens,
         },
         {
           role: "user",
