@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start -H 127.0.0.1 -p 3000",
     "lint": "eslint",
-    "rebuild": "echo rebuild"
+    "rebuild": "echo rebuild",
+    "deploy": "ssh root@91.98.25.220 \"cd /var/www/isubtext && ./deploy.sh\""
   },
   "dependencies": {
     "next": "16.1.6",
