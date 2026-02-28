@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export default function Footer() {
   const pathname = usePathname() || "";
@@ -8,19 +9,21 @@ export default function Footer() {
 
   return (
     <footer className="pb-6 text-center text-xs text-neutral-400">
-      <a
-        href={isPolish ? "/pl/privacy" : "/privacy"}
-        className="hover:text-neutral-600 transition-colors"
-      >
-          <div className="flex justify-center gap-4">
-          <a href={isPolish ? "/pl/privacy" : "/privacy"}>
-            {isPolish ? "Prywatność" : "Privacy"}
-          </a>
-          <a href={isPolish ? "/pl/terms" : "/terms"}>
-            {isPolish ? "Regulamin" : "Terms"}
-          </a>
-        </div>
-      </a>
+      <div className="flex justify-center gap-4">
+        <Link
+          href={isPolish ? "/pl/privacy" : "/privacy"}
+          className="hover:text-neutral-600 transition-colors"
+        >
+          {isPolish ? "Prywatność" : "Privacy"}
+        </Link>
+
+        <Link
+          href={isPolish ? "/pl/terms" : "/terms"}
+          className="hover:text-neutral-600 transition-colors"
+        >
+          {isPolish ? "Regulamin" : "Terms"}
+        </Link>
+      </div>
     </footer>
   );
 }
