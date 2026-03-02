@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { ISUBTEXT_PROMPT } from "@/lib/isubtextPrompt";
+import { checkDailyLimit, checkIpLimit } from "@/lib/safeMode";
 
 const MICRO_LENSES = [
   "Focus on what remains unspoken but emotionally present.",
@@ -19,28 +20,56 @@ function pickLens() {
 }
 
 /**
- * Create OpenAI client
- * Uses OPENAI_API_KEY from .env.local
+ * SAFE LIMITS
+ */
+const MAX_PER_MINUTE = Number(process.env.MAX_PER_MINUTE ?? 10);
+const MAX_DAILY_ANALYSES = Number(process.env.MAX_DAILY_ANALYSES ?? 1000);
+
+/**
+ * OpenAI client
  */
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 /**
+ * Extract real IP (works behind nginx / proxy)
+ */
+function getClientIp(req: NextRequest) {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  return "unknown";
+}
+
+/**
  * POST /api/analyze
- *
- * Body:
- * {
- *   text: string
- * }
  */
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+
+    // ✅ RATE LIMIT PER IP
+    if (!checkIpLimit(ip, MAX_PER_MINUTE)) {
+      return NextResponse.json(
+        { error: "Too many requests." },
+        { status: 429 }
+      );
+    }
+
+    // ✅ DAILY COST CIRCUIT BREAKER
+    if (!checkDailyLimit(MAX_DAILY_ANALYSES)) {
+      return NextResponse.json(
+        { error: "Daily limit reached." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const text: string = body.text;
     const lang: string = body.lang || "en";
 
-    // ✅ KROK 2 — wybierz micro-variation lens
     const lens = pickLens();
 
     // Basic validation
@@ -57,42 +86,45 @@ export async function POST(req: NextRequest) {
         : "Write the insight in natural English.";
 
     /**
-     * OpenAI request
-     *
-     * Privacy design note:
-     * Conversation text is processed transiently in memory
-     * solely to generate the requested insight.
-     * No conversation data is stored, logged, or persisted
-     * by iSubtext after the response is returned.
+     * OPENAI CALL WITH TIMEOUT
+     * protects against hanging requests
      */
-    
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.9,
+    const controller = new AbortController();
 
-      messages: [
-        {
-          role: "system",
-          content: `${ISUBTEXT_PROMPT}
-      ${languageInstruction}`,
-        },
-        {
-          role: "system",
-          content: lens,
-        },
-        {
-          role: "user",
-          content: text,
-        },
-      ],
-    });
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 10000); // 10s hard timeout
+
+    const completion = await openai.chat.completions.create(
+      {
+        model: "gpt-4o-mini",
+        temperature: 0.9,
+        messages: [
+          {
+            role: "system",
+            content: `${ISUBTEXT_PROMPT}
+${languageInstruction}`,
+          },
+          {
+            role: "system",
+            content: lens,
+          },
+          {
+            role: "user",
+            content: text,
+          },
+        ],
+      },
+      {
+        signal: controller.signal,
+      }
+    );
+
+    clearTimeout(timeout);
 
     const insight =
       completion.choices[0]?.message?.content?.trim() ?? "";
 
-    /**
-     * Safety fallback
-     */
     if (!insight) {
       return NextResponse.json(
         { error: "No insight generated." },
@@ -101,13 +133,20 @@ export async function POST(req: NextRequest) {
     }
 
     /**
-     * Optional intentional delay
-     * (keeps slow-AI feeling from project philosophy)
+     * Intentional slow-AI feeling
      */
     await new Promise((resolve) => setTimeout(resolve, 900));
 
     return NextResponse.json({ insight });
-  } catch (error) {
+
+  } catch (error: any) {
+    if (error.name === "AbortError") {
+      return NextResponse.json(
+        { error: "Request timeout." },
+        { status: 504 }
+      );
+    }
+
     console.error("Analyze API error:", error);
 
     return NextResponse.json(
